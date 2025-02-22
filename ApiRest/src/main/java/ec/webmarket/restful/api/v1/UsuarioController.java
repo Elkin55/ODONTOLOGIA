@@ -6,6 +6,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/usuarios")
 public class UsuarioController {
@@ -20,25 +22,29 @@ public class UsuarioController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<String> autenticar(@RequestBody Usuario usuario) {
-        usuarioService.autenticar(usuario);
-        return ResponseEntity.ok("Login exitoso");
+    public ResponseEntity<String> autenticar(@RequestBody Map<String, String> credenciales) {
+        String usuario = credenciales.get("usuario");
+        String clave = credenciales.get("clave");
+        String resultado = usuarioService.autenticar(usuario, clave);
+        return ResponseEntity.ok(resultado);
+    }
+
+    @PutMapping("/actualizar-clave")
+    public ResponseEntity<String> actualizarClave(@RequestBody Map<String, String> datos) {
+        String usuario = datos.get("usuario");
+        String claveAntigua = datos.get("claveAntigua");
+        String claveNueva = datos.get("claveNueva");
+        String resultado = usuarioService.actualizarClave(usuario, claveAntigua, claveNueva);
+        return ResponseEntity.ok(resultado);
     }
 
     @PutMapping("/{id}/rol")
-    public ResponseEntity<String> asignarRol(@PathVariable Long id, @RequestParam String tipo) {
-        usuarioService.asignarRol(id, tipo);
-        return ResponseEntity.ok("Rol asignado correctamente");
-    }
-
-    @PutMapping("/{id}/clave")
-    public ResponseEntity<String> actualizarClave(@PathVariable Long id, @RequestBody String nuevaClave) {
-        usuarioService.actualizarClave(id, nuevaClave);
-        return ResponseEntity.ok("Contraseña actualizada exitosamente");
-    }
-
-    @PostMapping("/recuperar-clave")
-    public ResponseEntity<String> recuperarClave(@RequestParam String usuario) {
-        return ResponseEntity.ok("Se ha iniciado el proceso de recuperación de contraseña");
+    public ResponseEntity<String> asignarRol(@PathVariable Long id, @RequestBody Map<String, String> datos) {
+        String tipo = datos.get("tipo");
+        Usuario usuario = usuarioService.asignarRol(id, tipo);
+        if (usuario != null) {
+            return ResponseEntity.ok("Rol asignado correctamente");
+        }
+        return ResponseEntity.ok("Usuario no encontrado");
     }
 }
